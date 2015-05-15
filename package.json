@@ -1,0 +1,24 @@
+{
+  "name": "silkjs",
+  "version": "0.0.0",
+  "description": "A JavaScript atomic visualiser build to be smooth, extensible and fun",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/muhrin/silkjs.git"
+  },
+  "author": {
+    "name": "Martin Uhrin",
+    "email": "martin.uhrin@gmail.com"
+  },
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/muhrin/silkjs/issues"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.5"
+  }
+}
