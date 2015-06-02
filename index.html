@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="src/lib/require.js"></script>
+    <script>
+        function myFunction() {
+            document.getElementById("demo").innerHTML = "Paragraph changed.";
+        }
+    </script>
+</head>
+
+<body>
+
+<h1>My Web Page</h1>
+
+<script>
+    require(['src/config'], function() {
+        require(['silk/visualisation', 'silk/sceneJSView/view'], function (vis, view) {
+            'use strict';
+
+            window.silk = {vis: vis, sceneJSView: view};
+
+            window.world = new vis.World();
+            var sceneJSView = new view.View(world);
+
+//            var i, atom;
+//            for (i = 0; i < 100; ++i) {
+//                atom = new silk.vis.Atom([4*Math.random() - 2, 4*Math.random() - 2, 4*Math.random() - 2], "H", 0.1);
+//                world.addChild(atom);
+//            }
+        });
+    });
+</script>
+
+</body>
+</html>

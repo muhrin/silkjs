@@ -1,7 +1,7 @@
 {
   "name": "silkjs",
   "version": "0.0.0",
-  "description": "A JavaScript atomic visualiser build to be smooth, extensible and fun",
+  "description": "A JavaScript atomic visualiser build to be smooth, extensible and fun.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -19,6 +19,10 @@
     "url": "https://github.com/muhrin/silkjs/issues"
   },
   "devDependencies": {
-    "grunt": "~0.4.5"
-  }
+    "grunt": "~0.4.5",
+    "grunt-contrib-requirejs": "~0.4.4",
+    "bower": "~1.4.1",
+    "grunt-bowercopy": "~1.2.0"
+  },
+  "dependencies": {}
 }

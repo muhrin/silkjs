@@ -1,0 +1,23 @@
+{
+  "name": "silkjs",
+  "version": "0.0.0",
+  "homepage": "https://github.com/muhrin/silkjs",
+  "authors": [
+    "Martin Uhrin <martin.uhrin@gmail.com>"
+  ],
+  "description": "A JavaScript atomic visualiser build to be smooth, extensible and fun.\"",
+  "main": "src/silkjs.js",
+  "license": "GPL-3.0",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "gl-matrix": "~2.2.1",
+    "scenejs": "git@github.com:xeolabs/scenejs.git#v4.0.1",
+    "requirejs": "~2.1.17"
+  }
+}
