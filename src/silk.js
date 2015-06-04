@@ -6,13 +6,13 @@
 // Start the main app logic.
 requirejs(['silk/visualisation', 'silk/sceneJSView/view', "scenejs"],
     function (vis, view) {
-    'use strict';
+        'use strict';
 
-    SceneJS.setConfigs({
-        pluginPath: "./foo/myPluginsDir"
+        SceneJS.setConfigs({
+            pluginPath: "./bower_complonents/scenejs/api/latest/plugins"
+        });
+
+        window.silk = {vis: vis, sceneJSView: view};
+
+        console.log("SilkJS loaded");
     });
-
-    window.silk = {vis: vis, sceneJSView: view};
-
-    console.log("SilkJS loaded");
-});

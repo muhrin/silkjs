@@ -17,56 +17,13 @@ define(["silk/util", "silk/event", "gl-matrix"],
             this._position = glm.vec3.create();
             this._rotation = glm.mat3.create();
             this._attributes = {};
-            var that = this;
 
 
             // Default attributes
             var attribs = {};
             // Merge attributes into the default attribs (will overwrite)
             util.merge(attributes, attribs);
-
-            // Build up the attributes
-            function makeAttributeGetter(key) {
-                return function () {
-                    return that._attributes[key];
-                };
-            }
-
-            function makeAttributeSetter(key) {
-                return function (value) {
-                    that._attributes[key] = value;
-                    that._fireEvent(my.WorldObject.EVENTS.ATTRIBUTE_CHANGED,
-                        {name: key.substring(1)});
-                };
-            }
-
-            var key, descriptor, privateName, info;
-            for (key in attribs) {
-                // Build up the descriptor for defineProperty call
-                descriptor = {
-                    configurable: false,
-                    enumerable: true
-                };
-                info = attribs[key];
-                privateName = "_".concat(key);
-                // Create the private variable to store the actual value
-                Object.defineProperty(this._attributes, privateName,
-                    {
-                        configurable: false,
-                        enumerable: false,
-                        writable: true,
-                        value: info.value
-                    });
-
-                // The getter
-                descriptor.get = makeAttributeGetter(privateName);
-                // The setter
-                if (!attribs[key].readonly) {
-                    // Not readonly, so create a setter
-                    descriptor.set = makeAttributeSetter(privateName);
-                }
-                Object.defineProperty(this._attributes, key, descriptor);
-            }
+            this.addAttributes(attribs);
         };
 
         // Static constant properties
@@ -75,7 +32,11 @@ define(["silk/util", "silk/event", "gl-matrix"],
             CHILD_REMOVING: 1,
             POSITION_CHANGED: 2,
             ROTATION_CHANGED: 3,
-            ATTRIBUTE_CHANGED: 4
+            ATTRIBUTE_CHANGED: 4,
+            ATTRIBUTE_ADDED : 5,
+            ATTRIBUTE_REMOVED : 6,
+            WORLD_INSERTED: 7,
+            WORLD_REMOVING: 8
         };
         my.WorldObject.ORPHAN_ID = "orphan";
         my.WorldObject.TYPE = "world_object";
@@ -104,6 +65,114 @@ define(["silk/util", "silk/event", "gl-matrix"],
             if (this.world()) {
                 this.world()._doFireEvent(this, type, msg);
             }
+        };
+
+        my.WorldObject.prototype._makeAttributeGetter = function (key, owner) {
+            return function () {
+                return owner.attributes()[key];
+            };
+        };
+
+        my.WorldObject.prototype._makeAttributeSetter = function (key, owner) {
+            return function (value) {
+                owner.attributes()[key] = value;
+                owner._fireEvent(my.WorldObject.EVENTS.ATTRIBUTE_CHANGED,
+                    {name: key.substring(1)});
+            };
+        };
+
+        my.WorldObject.prototype._createPrivateAttribute = function (name, info) {
+            Object.defineProperty(this._attributes, name,
+                {
+                    configurable: false,
+                    enumerable: false,
+                    writable: true,
+                    value: info.value
+                });
+        };
+
+        my.WorldObject.prototype._getAttributeObjectCreate = function (path, obj) {
+            if (path.length === 0) {
+                // Reached the bottom of the path
+                return obj;
+            }
+            // Have to go down the path
+            var key = path.pop();
+            if (!obj.hasOwnProperty(key)) {
+                Object.defineProperty(obj, key,
+                    {
+                        configurable: false,
+                        enumerable: true,
+                        writable: true,
+                        value: {}
+                    });
+            }
+            return this._getAttributeObjectCreate(path, obj[key]);
+        };
+
+        my.WorldObject.prototype.addAttribute = function (name, info) {
+            // Build up the attributes
+            var descriptor, leafName, path, attributesObject;
+            var privateName = "_".concat(name);
+
+            // Create the private variable to store the actual value
+            this._createPrivateAttribute(privateName, info);
+
+            // Build up the descriptor for defineProperty call
+            descriptor = {
+                configurable: false,
+                enumerable: true
+            };
+            // The getter
+            descriptor.get = this._makeAttributeGetter(privateName, this);
+            // The setter
+            if (!info.readonly) {
+                // Not readonly, so create a setter
+                descriptor.set = this._makeAttributeSetter(privateName, this);
+            }
+
+            path = name.split(".");
+            leafName = path.pop();
+            attributesObject = this._getAttributeObjectCreate(path.reverse(),
+                this._attributes);
+
+            Object.defineProperty(attributesObject, leafName, descriptor);
+            this._fireEvent(my.WorldObject.EVENTS.ATTRIBUTE_ADDED,
+                {name: name});
+        };
+
+        my.WorldObject.prototype.removeAttribute = function (name) {
+            delete this._attributes[name];
+            this._fireEvent(my.WorldObject.EVENTS.ATTRIBUTE_REMOVED,
+                {name: name});
+        };
+
+        my.WorldObject.prototype.addAttributes = function (attributes) {
+            var name;
+            for (name in attributes) {
+                this.addAttribute(name, attributes[name]);
+            }
+        };
+
+        my.WorldObject.prototype.removeAttributes = function (attributes) {
+            var i;
+            for (i = 0; i < attributes.length; ++i) {
+                this.removeAttribute(attributes[i]);
+            }
+        };
+
+        my.WorldObject.prototype.findAllChildren = function (type, results) {
+            if (!results) {
+                results = [];
+            }
+            if (this.type() === type) {
+                results.push(this);
+            }
+            var i;
+            for (i = 0; i < this._children.length; ++i) {
+                this._children[i].findAllChildren(type, results)
+            }
+            return results;
         };
 
         // Public methods
@@ -185,6 +254,7 @@ define(["silk/util", "silk/event", "gl-matrix"],
                 throw new Error("Cannot insert into world, already in world.");
             }
             this._world = world;
+            this._fireEvent(my.WorldObject.EVENTS.WORLD_INSERTED, {});
             this._children.forEach(function (child) {
                 child._worldInserted(world);
             });
@@ -194,6 +264,7 @@ define(["silk/util", "silk/event", "gl-matrix"],
             if (!this.world()) {
                 throw new Error("Cannot remove from world, not in world.");
             }
+            this._fireEvent(my.WorldObject.EVENTS.WORLD_REMOVING, {});
             this._world = null;
             var child;
             for (child in this._children) {

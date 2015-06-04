@@ -51,8 +51,23 @@ define(["silk/visualisation", "silk/util", "silk/event", "gl-matrix", "scenejs"]
                     });
             }
 
+            function worldInserted(object, msg) {
+                if (_mappers.hasOwnProperty(object.type())) {
+                    object.addAttributes(_mappers[object.type()].getModelAttributes());
+                }
+            }
+
+            function worldRemoving(object, msg) {
+                if (_mappers.hasOwnProperty(object.type())) {
+                    var key;
+                    for (key in _mappers[object.type()].getModelAttributes()) {
+                        object.removeAttribute(key);
+                    }
+                }
+            }
+
             function addToLibrary(node) {
-                this._scene.getNode("library",
+                this.scene().getNode("library",
                     function (library) {
                         library.addNode(node);
                     });
@@ -181,6 +196,11 @@ define(["silk/visualisation", "silk/util", "silk/event", "gl-matrix", "scenejs"]
                 vis.WorldObject.EVENTS.POSITION_CHANGED, positionChanged);
             _world.addListener(event.ANY_OBJECT,
                 vis.WorldObject.EVENTS.ROTATION_CHANGED, rotationChanged);
+            _world.addListener(event.ANY_OBJECT,
+                vis.WorldObject.EVENTS.WORLD_INSERTED, worldInserted);
+            _world.addListener(event.ANY_OBJECT,
+                vis.WorldObject.EVENTS.WORLD_REMOVING, worldRemoving);
+
             var _scene = SceneJS.createScene(createSceneNodes());
         };
 
@@ -222,13 +242,17 @@ define(["silk/visualisation", "silk/util", "silk/event", "gl-matrix", "scenejs"]
         };
         NodeManager.prototype.attach = function (sceneManager) {
             this._attach(sceneManager);
+            this.worldAttached();
         };
         NodeManager.prototype.detach = function () {
+            this.worldDetaching();
             this._detach();
         };
         NodeManager.prototype.getLibraryNodes = function () {
             return [];
         };
+        NodeManager.prototype.worldAttached = function () {};
+        NodeManager.prototype.worldDetaching = function () {};
 
         my.AtomMapper = function () {
             NodeManager.call(this, vis.Atom.TYPE);
@@ -242,24 +266,41 @@ define(["silk/visualisation", "silk/util", "silk/event", "gl-matrix", "scenejs"]
                             node.setXYZ({x: r, y:r, z:r});
                     });
                 }
-                if(msg.name === "color") {
+                else if(msg.name === "color") {
                     that.scene().getNode(object.worldId().concat("_material"),
                         function (node) {
                             node.setBaseColor(object.attributes().color);
                         });
                 }
+                else if(msg.name === "scenejs.shine") {
+                    that.scene().getNode(object.worldId().concat("_material"),
+                        function (node) {
+                            node.setShine(object.attributes().scenejs.shine);
+                        });
+                }
+                else if(msg.name === "scenejs.alpha") {
+                    that.scene().getNode(object.worldId().concat("_material"),
+                        function (node) {
+                            node.setAlpha(object.attributes().scenejs.alpha);
+                        });
+                }
             }
 
-            this.attach = function (sceneManager) {
-                this._attach(sceneManager);
+            this.getModelAttributes = function () {
+                return {
+                    "scenejs.alpha": {value: 1.0},
+                    "scenejs.shine": {value: 70.0}
+                };
+            };
+
+            this.worldAttached = function () {
                 this.world().addListener(vis.Atom.TYPE,
                     vis.WorldObject.EVENTS.ATTRIBUTE_CHANGED, attributeChanged);
             };
 
-            this.detach = function () {
+            this.worldDetaching = function () {
                 this.world().removeListener(vis.Atom.TYPE,
                     vis.WorldObject.EVENTS.ATTRIBUTE_CHANGED, attributeChanged);
-                this._detach();
             };
         };
         util.extend(NodeManager, my.AtomMapper);
