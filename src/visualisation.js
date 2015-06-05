@@ -170,7 +170,7 @@ define(["silk/util", "silk/event", "gl-matrix"],
             }
             var i;
             for (i = 0; i < this._children.length; ++i) {
-                this._children[i].findAllChildren(type, results)
+                this._children[i].findAllChildren(type, results);
             }
             return results;
         };
@@ -205,6 +205,10 @@ define(["silk/util", "silk/event", "gl-matrix"],
             return this._children;
         };
 
+        my.WorldObject.prototype.childIndex = function (child) {
+            return this._children.indexOf(child);
+        };
+
         my.WorldObject.prototype.type = function () {
             return this._type;
         };
@@ -217,6 +221,10 @@ define(["silk/util", "silk/event", "gl-matrix"],
             return this._world;
         };
 
+        my.WorldObject.prototype.parent = function () {
+            return this._parent;
+        }
+
         my.WorldObject.prototype.addChild = function (item) {
             return this._insertChild(item);
         };
@@ -227,6 +235,15 @@ define(["silk/util", "silk/event", "gl-matrix"],
 
         my.WorldObject.prototype.getChild = function (index) {
             return this._children[index];
+        };
+
+        my.WorldObject.prototype.getChildFromPath = function (path, offset) {
+            var _offset = offset === undefined ? 0 : offset;
+            if (path.length === offset) {
+                return this;
+            } else {
+                return this.getChild(path[_offset]).getChildFromPath(path, _offset + 1);
+            }
         };
 
         my.WorldObject.prototype.worldId = function () {
@@ -315,6 +332,10 @@ define(["silk/util", "silk/event", "gl-matrix"],
             this._doFireEvent = function (object, eventType, msg) {
                 _eventManager.fireEvent(object, eventType, msg);
             };
+
+            this.getObject = function (id) {
+                return this.getChildFromPath(id.split("."), 1);
+            }
         };
         util.extend(my.WorldObject, my.World);
         // Static constant properties

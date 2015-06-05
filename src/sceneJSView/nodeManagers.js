@@ -7,7 +7,7 @@ define(["silk/visualisation", "silk/util", "silk/event", "gl-matrix", "scenejs"]
 
         var my = {};
 
-        my.SceneManager = function (world) {
+        my.SceneManager = function (world, canvasId) {
             var _mappers = {};
             var _world = world;
             var that = this;
@@ -53,7 +53,10 @@ define(["silk/visualisation", "silk/util", "silk/event", "gl-matrix", "scenejs"]
 
             function worldInserted(object, msg) {
                 if (_mappers.hasOwnProperty(object.type())) {
-                    object.addAttributes(_mappers[object.type()].getModelAttributes());
+                    var attrs = _mappers[object.type()].getModelAttributes();
+                    if (attrs) {
+                        object.addAttributes(attrs);
+                    }
                 }
             }
 
@@ -73,13 +76,13 @@ define(["silk/visualisation", "silk/util", "silk/event", "gl-matrix", "scenejs"]
                     });
             }
 
-            function createSceneNodes() {
+            function createSceneNodes(canvasId) {
                 var libraryNodes = [];
                 var t;
                 for (t in _mappers) {
                     util.extendArray(libraryNodes, _mappers[t].getLibraryNodes());
                 }
-                return {
+                var scene = {
                     nodes: [
                         // The library of shared cores
                         {
@@ -101,6 +104,10 @@ define(["silk/visualisation", "silk/util", "silk/event", "gl-matrix", "scenejs"]
                         }
                     ]
                 };
+                if (canvasId) {
+                    scene.canvasId = canvasId;
+                }
+                return scene;
             }
 
             this.createNode = function (worldObject) {
@@ -201,7 +208,7 @@ define(["silk/visualisation", "silk/util", "silk/event", "gl-matrix", "scenejs"]
             _world.addListener(event.ANY_OBJECT,
                 vis.WorldObject.EVENTS.WORLD_REMOVING, worldRemoving);
 
-            var _scene = SceneJS.createScene(createSceneNodes());
+            var _scene = SceneJS.createScene(createSceneNodes(canvasId));
         };
 
 
@@ -253,6 +260,10 @@ define(["silk/visualisation", "silk/util", "silk/event", "gl-matrix", "scenejs"]
         };
         NodeManager.prototype.worldAttached = function () {};
         NodeManager.prototype.worldDetaching = function () {};
+
+        NodeManager.prototype.getModelAttributes = function () {
+            return null;
+        };
 
         my.AtomMapper = function () {
             NodeManager.call(this, vis.Atom.TYPE);

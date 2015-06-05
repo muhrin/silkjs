@@ -14,7 +14,8 @@ module.exports = function (grunt) {
                 files: {
                     'require.js': 'requirejs/require.js',
                     'gl-matrix.js': 'gl-matrix/dist/gl-matrix.js',
-                    'scenejs.js': 'scenejs/api/latest/scenejs.js'
+                    'scenejs.js': 'scenejs/api/latest/scenejs.js',
+                    'webix.js': 'webix/codebase/webix.js'
                 }
             }
         }

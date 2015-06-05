@@ -2,38 +2,90 @@
 <html>
 
 <head>
+    <link rel="stylesheet" href="bower_components/webix/codebase/webix.css" type="text/css" charset="utf-8">
     <script src="src/lib/require.js"></script>
 </head>
 
 <body>
 
-<h1>My Web Page</h1>
+<canvas id="scenejs_view" width="800" height="800">
+    <p>This example requires a browser that supports the <a href="http://www.w3.org/html/wg/html5/">HTML5</a>
+        &lt;canvas&gt; feature.</p>
+</canvas>
+<!--<div id="world_treetable"></div>-->
+<div id="world_tree" style='width:200px; height:200px; float:left'></div>
+<div id="object_properties" style='width:200px; height:400px'></div>
+<div id="testA"></div>
 
 <script>
-    require(['src/config'], function() {
+    require(['src/config'], function () {
         require(["scenejs"], function () {
             // Point SceneJS to the bundled plugins
             SceneJS.setConfigs({
-                pluginPath:"bower_components/scenejs/api/latest/plugins"
+                pluginPath: "bower_components/scenejs/api/latest/plugins"
             });
-            require(['silk/visualisation', 'silk/sceneJSView/view'], function (vis, view) {
-                'use strict';
+
+            require(['silk/visualisation', 'silk/sceneJSView/view', 'silk/webix_treetable/controller',
+                        'silk/webix/treeController', 'silk/webix/propertySheetController', 'silk/selectionModel'],
+                    function (vis, view, tt_controller, treeController, propertySheetController, selection) {
+                        'use strict';
 
 
-                window.silk = {vis: vis, sceneJSView: view};
+                        window.silk = {vis: vis, sceneJSView: view};
 
-                window.world = new vis.World();
-                var sceneJSView = new view.View(world);
+                        window.world = new vis.World();
+                        var sceneJSView = new view.View(world, "scenejs_view");
 
 //            var i, atom;
 //            for (i = 0; i < 100; ++i) {
 //                atom = new silk.vis.Atom([4*Math.random() - 2, 4*Math.random() - 2, 4*Math.random() - 2], "H", 0.1);
 //                world.addChild(atom);
 //            }
-            });
-        })
+
+//                        window.grid = webix.ui({
+//                            container: "world_treetable",
+//                            view: "treetable",
+//                            columns: [
+//                                {id: "id", width: 200},
+//                                {id: "property", header: "Property", width: 200,
+//                                    template:"{common.treetable()} #property#" },
+//                                {id: "value", editor: "text", header: "Value", width: 100},
+//                            ],
+//                            autoheight: true,
+//                            autowidth: true,
+//                            editable: true
+//                        });
+////                        console.log("Exists: " + $$(grid.config.id).exists());
+//                        var controller = tt_controller.Controller(world, grid.config.id);
+
+                        var selectionModel = new selection.SelectionModel();
+
+                        var tree = new webix.ui({
+                            container: "world_tree",
+                            view: "tree",
+                            select: "multiselect"
+                        });
+                        var treeController = new treeController.TreeController(world, selectionModel, tree.config.id);
+
+
+                        var sheet = webix.ui({
+                            view:"property",
+                            container: "object_properties"
+                        });
+                        var propertySheetController =
+                                new propertySheetController.PropertySheetController(world, selectionModel,
+                                        sheet.config.id);
+
+
+
+
+                    });
+
+        });
+        //   })
     });
 </script>
+
 
 </body>
 </html>

@@ -7,10 +7,10 @@ define(["silk/sceneJSView/nodeManagers", "silk/visualisation"],
 
         var my = {};
 
-        my.View = function (world) {
+        my.View = function (world, canvasId) {
             // Private properties
             var _world = typeof world !== 'undefined' ? world : new vis.World();
-            var _sceneManager = sceneman.SceneManager(_world);
+            var _sceneManager = sceneman.SceneManager(_world, canvasId);
         };
 
         return my;
