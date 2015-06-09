@@ -26,6 +26,12 @@ define([
                             node.setPositions({positions: that._generateLineList(object)});
                         });
                 }
+                if (msg.name === "line_width") {
+                    that.scene().getNode(object.worldId().concat("_renderer"),
+                        function (node) {
+                            node.setLineWidth(object.attributes().line_width);
+                        });
+                }
             }
 
             this._generateLineList = function (unitCell) {
@@ -79,8 +85,9 @@ define([
             }
 
             return {
+                id: unitCell.worldId().concat("_renderer"),
                 type: "renderer",
-                lineWidth: 2.0,
+                lineWidth: unitCell.attributes().line_width,
 
                 nodes: [
                     {

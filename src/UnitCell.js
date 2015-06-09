@@ -9,7 +9,8 @@ define(["silk/WorldObject", "silk/util", "lib/gl-matrix"],
             var attributes = {
                 a: {value: glm.vec3.fromValues(10, 0, 0)},
                 b: {value: glm.vec3.fromValues(0, 10, 0)},
-                c: {value: glm.vec3.fromValues(0, 0, 10)}
+                c: {value: glm.vec3.fromValues(0, 0, 10)},
+                line_width: {value: 1}
             };
 
             WorldObject.call(this, UnitCell.TYPE, attributes);
