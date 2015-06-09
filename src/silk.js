@@ -1,18 +1,30 @@
 /**
  * Created by Maritn Uhrin on 18/05/15.
  */
-
-
-// Start the main app logic.
-requirejs(['silk/visualisation', 'silk/sceneJSView/view', "scenejs"],
-    function (vis, view) {
+define([
+        'silk/atom',
+        'silk/crystal',
+        'silk/unitCell',
+        'silk/world',
+        'silk/sceneJSView/view',
+        "scenejs"],
+    function (Atom, Crystal, UnitCell, World, view) {
         'use strict';
 
-        SceneJS.setConfigs({
-            pluginPath: "./bower_complonents/scenejs/api/latest/plugins"
-        });
+        //SceneJS.setConfigs({
+        //    pluginPath: "./bower_complonents/scenejs/api/latest/plugins"
+        //});
 
-        window.silk = {vis: vis, sceneJSView: view};
+        var my = {
+            Atom: Atom,
+            Crystal: Crystal,
+            UnitCell: UnitCell,
+            World: World,
+            view: view
+        };
 
-        console.log("SilkJS loaded");
+
+        console.log("SilkJS loaded: " + my.silk);
+
+        return my;
     });

@@ -1,8 +1,8 @@
 /**
  * Created by uhrin on 04/06/15.
  */
-define(["silk/visualisation", "silk/util", "silk/event", "webix"],
-    function (vis, util, event) {
+define(["silk/WorldObject", "silk/util", "silk/event", "webix"],
+    function (WorldObject, util, event) {
         var my = {};
 
         my.Controller = function (world, tableId, idPrefix) {
@@ -68,9 +68,9 @@ define(["silk/visualisation", "silk/util", "silk/event", "webix"],
             }
 
             world.addListener(event.ANY_OBJECT,
-                vis.WorldObject.EVENTS.WORLD_INSERTED, worldInserted);
+                WorldObject.EVENTS.WORLD_INSERTED, worldInserted);
             world.addListener(event.ANY_OBJECT,
-                vis.WorldObject.EVENTS.WORLD_REMOVING, worldRemoving);
+                WorldObject.EVENTS.WORLD_REMOVING, worldRemoving);
 
             treetable.attachEvent("onAfterEditStop", function (state, editor, ignoreUpdate) {
                 if (state.value !== state.old) {

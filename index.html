@@ -19,71 +19,67 @@
 
 <script>
     require(['src/config'], function () {
-        require(["scenejs"], function () {
+        require(["lib/scenejs"], function () {
             // Point SceneJS to the bundled plugins
             SceneJS.setConfigs({
                 pluginPath: "bower_components/scenejs/api/latest/plugins"
             });
 
-            require(['silk/visualisation', 'silk/sceneJSView/view', 'silk/webix_treetable/controller',
-                        'silk/webix/treeController', 'silk/webix/propertySheetController', 'silk/selectionModel'],
-                    function (vis, view, tt_controller, treeController, propertySheetController, selection) {
+            require(['silk/main'],
+                    function (silk) {
                         'use strict';
 
+                        window.silk = silk;
+                        window.world = new silk.World();
 
-                        window.silk = {vis: vis, sceneJSView: view};
+                        var view = new silk.scenejs.View(world, "scenejs_view");
 
-                        window.world = new vis.World();
-                        var sceneJSView = new view.View(world, "scenejs_view");
-
-//            var i, atom;
-//            for (i = 0; i < 100; ++i) {
-//                atom = new silk.vis.Atom([4*Math.random() - 2, 4*Math.random() - 2, 4*Math.random() - 2], "H", 0.1);
-//                world.addChild(atom);
-//            }
-
-//                        window.grid = webix.ui({
-//                            container: "world_treetable",
-//                            view: "treetable",
-//                            columns: [
-//                                {id: "id", width: 200},
-//                                {id: "property", header: "Property", width: 200,
-//                                    template:"{common.treetable()} #property#" },
-//                                {id: "value", editor: "text", header: "Value", width: 100},
-//                            ],
-//                            autoheight: true,
-//                            autowidth: true,
-//                            editable: true
-//                        });
-////                        console.log("Exists: " + $$(grid.config.id).exists());
-//                        var controller = tt_controller.Controller(world, grid.config.id);
-
-                        var selectionModel = new selection.SelectionModel();
+                        var selectionModel = new silk.SelectionModel();
 
                         var tree = new webix.ui({
                             container: "world_tree",
                             view: "tree",
                             select: "multiselect"
                         });
-                        var treeController = new treeController.TreeController(world, selectionModel, tree.config.id);
+                        var treeController = new silk.webix.TreeController(world, selectionModel, tree.config.id);
 
 
                         var sheet = webix.ui({
-                            view:"property",
+                            view: "property",
                             container: "object_properties"
                         });
                         var propertySheetController =
-                                new propertySheetController.PropertySheetController(world, selectionModel,
+                                new silk.webix.PropertySheetController(world, selectionModel,
                                         sheet.config.id);
-
-
 
 
                     });
 
         });
-        //   })
     });
+
+    //            var i, atom;
+    //            for (i = 0; i < 100; ++i) {
+    //                atom = new silk.vis.Atom([4*Math.random() - 2, 4*Math.random() - 2, 4*Math.random() - 2], "H", 0.1);
+    //                world.addChild(atom);
+    //            }
+
+    //                        window.grid = webix.ui({
+    //                            container: "world_treetable",
+    //                            view: "treetable",
+    //                            columns: [
+    //                                {id: "id", width: 200},
+    //                                {id: "property", header: "Property", width: 200,
+    //                                    template:"{common.treetable()} #property#" },
+    //                                {id: "value", editor: "text", header: "Value", width: 100},
+    //                            ],
+    //                            autoheight: true,
+    //                            autowidth: true,
+    //                            editable: true
+    //                        });
+    ////                        console.log("Exists: " + $$(grid.config.id).exists());
+    //                        var controller = tt_controller.Controller(world, grid.config.id);
+
 </script>
 
 

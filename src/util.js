@@ -86,6 +86,21 @@ define(function () {
                 obj = obj[arr.shift()];
             }
             return obj[arr.shift()] = val;
+        },
+
+        createPackage : function (fn, args) {
+            var names = fn.toString().split(')', 1)[0].
+                split('(', 2)[1].
+                replace(/\s/g, '').split(',');
+
+            var pack = {};
+            var i, num = Math.min(args.length, names.length);
+            for(i = 0; i < num; ++i) {
+                if (names[i][0] !== "_") {
+                    pack[names[i]] = args[i];
+                }
+            }
+            return pack;
         }
     };
 

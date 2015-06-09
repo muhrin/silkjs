@@ -1,12 +1,11 @@
 /**
  * Created by uhrin on 05/06/15.
  */
-define(["silk/visualisation", "silk/util", "silk/event", "webix"],
-    function (vis, util, event) {
-        my = {};
+define(["silk/util", "lib/webix"],
+    function (util) {
+        'use strict';
 
-
-        my.PropertySheetController = function (world, selectionModel, sheetId) {
+        var PropertySheetController = function (world, selectionModel, sheetId) {
             var sheet = $$(sheetId);
 
             function buildAttributePaths(attribute, pathString, paths) {
@@ -93,6 +92,5 @@ define(["silk/visualisation", "silk/util", "silk/event", "webix"],
 
         };
 
-
-        return my;
+        return PropertySheetController;
     });
