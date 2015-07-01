@@ -1,15 +1,21 @@
 /**
  * Created by uhrin on 05/06/15.
  */
-define(["silk/WorldObject", "silk/util"],
+define(["./WorldObject", "./util"],
     function (WorldObject, util) {
         'use strict';
 
         var Atom = function (position, specie, radius) {
             var attributes = {
                 specie: {value: typeof specie !== 'undefined' ? specie : "H"},
-                radius: {value: typeof radius !== 'undefined' ? radius : 1.0},
-                color: {value: {r: 0.53, g: 0.34, b: 0.65}}
+                radius: {
+                    value: typeof radius !== 'undefined' ? radius : 1.0,
+                    type: WorldObject.ATTRIBUTE_TYPE.FLOAT
+                },
+                color: {
+                    value: "#2B8CBE",
+                    type: WorldObject.ATTRIBUTE_TYPE.COLOR
+                }
             };
             WorldObject.call(this, Atom.TYPE, attributes);
             delete Atom.prototype.rotation;

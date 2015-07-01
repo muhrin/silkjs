@@ -21,7 +21,8 @@ define(function () {
 
         /**
          * Set the currently selected items.
-         * @param selected An array of selected objects
+         *
+         * @param {Array} selected An array of selected objects
          * @param initiator (optional) An identifier for who set the selection, can be used,
          * for example, for a listener to ignore selection events it generated itself.
          */

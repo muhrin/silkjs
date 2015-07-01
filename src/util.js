@@ -88,6 +88,13 @@ define(function () {
             return obj[arr.shift()] = val;
         },
 
+        ensureExists : function (obj, key, valueIfNot) {
+            if (!obj.hasOwnProperty(key)) {
+                obj[key] = valueIfNot;
+            }
+            return obj[key];
+        },
+
         createPackage : function (fn, args) {
             var names = fn.toString().split(')', 1)[0].
                 split('(', 2)[1].

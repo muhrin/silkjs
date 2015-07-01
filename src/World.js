@@ -1,5 +1,5 @@
 /**
- * Created by uhrin on 05/06/15.
+ * Created by Martin Uhrin on 05/06/15.
  */
 define(["./WorldObject", "./util", "./event", "require"],
     function (WorldObject, util, event) {
@@ -10,6 +10,8 @@ define(["./WorldObject", "./util", "./event", "require"],
             this._parent = null;
             this._world = this; // The world is always 'in' itself
             this._worldId = World.TYPE;
+
+            var extraAttributes = {};
 
             // Keep track of event listeners for each type of world object
             var _eventManager = new event.EventManager();
@@ -49,9 +51,46 @@ define(["./WorldObject", "./util", "./event", "require"],
                 _eventManager.fireEvent(object, eventType, msg);
             };
 
-            this.getObject = function (id) {
-                return this.getChildFromPath(id.split("."), 1);
+            this.getObject = function (worldId) {
+                return this.getChildFromPath(worldId.split("."), 1);
             };
+
+            this.attachExtraAttribute = function (objectType, name, info) {
+                this.attachExtraAttributes(objectType, {name: info});
+            };
+
+            this.attachExtraAttributes = function (objectType, attrs) {
+                // TODO: Add attributes to any existing world objects
+                util.merge(attrs, util.ensureExists(extraAttributes, objectType, {}));
+            };
+
+
+            function worldInserted (obj) {
+                var attrs = extraAttributes[obj.type()];
+                if (attrs) {
+                    var key;
+                    for (key in attrs) {
+                        obj.addAttribute(key, attrs[key]);
+                    }
+                }
+            }
+
+            function worldRemoving (obj) {
+                if (extraAttributes.hasOwnProperty(obj.type())) {
+                    var key;
+                    var names = [];
+                    for (key in extraAttributes) {
+                        names.push(key);
+                    }
+                    obj.removeAttributes(names);
+                }
+            }
+
+            // Listen for any new objects being inserted into the world
+            this.addListener(event.ANY_OBJECT,
+                WorldObject.EVENTS.WORLD_INSERTED, worldInserted);
+            this.addListener(event.ANY_OBJECT,
+                WorldObject.EVENTS.WORLD_REMOVING, worldRemoving);
         };
         util.extend(WorldObject, World);
 

@@ -1,10 +1,90 @@
 /**
  * Created by uhrin on 05/06/15.
  */
-define(["silk/util", "silk/event", "lib/gl-matrix"],
+define(["./util", "./event", "lib/gl-matrix"],
     function (util, event, glm) {
         'use strict';
 
+        var Attributes = function () {
+        };
+
+        // Store information (metadata) about our attributes
+        Object.defineProperty(Attributes.prototype, '_info',
+            {
+                configurable: false,
+                enumerable: false,
+                writable: true,
+                value: {}
+            });
+
+        Attributes.prototype.getInfo = function (name) {
+            return this._info[name];
+        };
+
+        Attributes.prototype._getAttributeObjectCreate = function (path, obj) {
+            if (typeof obj === 'undefined') {
+                obj = this;
+            }
+            if (path.length === 0) {
+                // Reached the bottom of the path
+                return obj;
+            }
+            // Have to go down the path
+            var key = path.pop();
+            if (!obj.hasOwnProperty(key)) {
+                Object.defineProperty(obj, key,
+                    {
+                        configurable: false,
+                        enumerable: true,
+                        writable: true,
+                        value: {}
+                    });
+            }
+            return this._getAttributeObjectCreate(path, obj[key]);
+        };
+
+        Attributes.prototype._createPrivateAttribute =
+            function (name, initialValue) {
+                var privateName = "_".concat(name);
+                Object.defineProperty(this, privateName,
+                    {
+                        configurable: false,
+                        enumerable: false,
+                        writable: true,
+                        value: initialValue
+                    });
+                return privateName;
+            };
+
+        Attributes.prototype._add = function (name, descriptor, meta) {
+            // Build up the attributes
+            var leafName, path, attributesObject;
+
+            path = name.split(".");
+            leafName = path.pop();
+            attributesObject = this._getAttributeObjectCreate(path.reverse());
+
+            this._info[name] = meta;
+            Object.defineProperty(attributesObject, leafName, descriptor);
+        };
+
+
+        /**
+         * Represents a world object.
+         *
+         * @param {string} type - A string to identify this world object type
+         * @param attributes - A dictionary of publicly exposed attributes that
+         * this type of world object has.  The format is:
+         * {
+         *   [attribute name]: {
+         *     value (optional): Initial value of the attribute
+         *     type {string} (optional): The attribute type, can be one of
+         *       WorldObject.ATTRIBUTE_TYPE or a custom type but then external
+         *       views/controllers may not be able to display it.
+         *   }
+         * }
+         * @constructor
+         */
         var WorldObject = function (type, attributes) {
             // Pirvate properties
             this._type = type;
@@ -14,8 +94,9 @@ define(["silk/util", "silk/event", "lib/gl-matrix"],
             this._world = null;
             this._position = glm.vec3.create();
             this._rotation = glm.mat3.create();
-            this._attributes = {};
-
+            // Set up the attributes object
+            //this._attributes = {};
+            this._attributes = new Attributes();
 
             // Default attributes
             var attribs = {};
@@ -25,16 +106,30 @@ define(["silk/util", "silk/event", "lib/gl-matrix"],
         };
 
         // Static constant properties
+        /**
+         * @readonly
+         * @enum {number}
+         */
         WorldObject.EVENTS = {
             CHILD_ADDED: 0,
             CHILD_REMOVING: 1,
             POSITION_CHANGED: 2,
             ROTATION_CHANGED: 3,
             ATTRIBUTE_CHANGED: 4,
-            ATTRIBUTE_ADDED : 5,
-            ATTRIBUTE_REMOVED : 6,
+            ATTRIBUTE_ADDED: 5,
+            ATTRIBUTE_REMOVED: 6,
             WORLD_INSERTED: 7,
             WORLD_REMOVING: 8
+        };
+        /**
+         * @readonly
+         * @enum {string}
+         */
+        WorldObject.ATTRIBUTE_TYPE = {
+            STRING: "string",
+            COLOR: "color",
+            FLOAT: "float",
+            INTEGER: "integer"
         };
         WorldObject.ORPHAN_ID = "orphan";
         WorldObject.TYPE = "world_object";
@@ -79,42 +174,16 @@ define(["silk/util", "silk/event", "lib/gl-matrix"],
             };
         };
 
-        WorldObject.prototype._createPrivateAttribute = function (name, info) {
-            Object.defineProperty(this._attributes, name,
-                {
-                    configurable: false,
-                    enumerable: false,
-                    writable: true,
-                    value: info.value
-                });
-        };
-
-        WorldObject.prototype._getAttributeObjectCreate = function (path, obj) {
-            if (path.length === 0) {
-                // Reached the bottom of the path
-                return obj;
-            }
-            // Have to go down the path
-            var key = path.pop();
-            if (!obj.hasOwnProperty(key)) {
-                Object.defineProperty(obj, key,
-                    {
-                        configurable: false,
-                        enumerable: true,
-                        writable: true,
-                        value: {}
-                    });
-            }
-            return this._getAttributeObjectCreate(path, obj[key]);
-        };
-
         WorldObject.prototype.addAttribute = function (name, info) {
             // Build up the attributes
-            var descriptor, leafName, path, attributesObject;
-            var privateName = "_".concat(name);
+            var descriptor;
+            if (typeof info.type === 'undefined') {
+                info.type = 'string';
+            }
 
             // Create the private variable to store the actual value
-            this._createPrivateAttribute(privateName, info);
+            var privateName =
+                this._attributes._createPrivateAttribute(name, info.value);
 
             // Build up the descriptor for defineProperty call
             descriptor = {
@@ -129,12 +198,7 @@ define(["silk/util", "silk/event", "lib/gl-matrix"],
                 descriptor.set = this._makeAttributeSetter(privateName, this);
             }
 
-            path = name.split(".");
-            leafName = path.pop();
-            attributesObject = this._getAttributeObjectCreate(path.reverse(),
-                this._attributes);
-
-            Object.defineProperty(attributesObject, leafName, descriptor);
+            this.attributes()._add(name, descriptor, info);
             this._fireEvent(WorldObject.EVENTS.ATTRIBUTE_ADDED,
                 {name: name});
         };
@@ -200,14 +264,30 @@ define(["silk/util", "silk/event", "lib/gl-matrix"],
             }
         });
 
+        /**
+         * Get the collection of this object's children.
+         *
+         * @returns {Array} This objects children
+         */
         WorldObject.prototype.children = function () {
             return this._children;
         };
 
+        /**
+         * Get the index of a child of this object.
+         *
+         * @param child The child to find the index of
+         * @returns {number} The child index or -1 if not found.
+         */
         WorldObject.prototype.childIndex = function (child) {
             return this._children.indexOf(child);
         };
 
+        /**
+         * Get the type of this world object.
+         *
+         * @returns {string} The string identifying this world object type
+         */
         WorldObject.prototype.type = function () {
             return this._type;
         };
@@ -216,13 +296,23 @@ define(["silk/util", "silk/event", "lib/gl-matrix"],
             return this._attributes;
         };
 
+        /**
+         * Get the world that this object is in.
+         *
+         * @returns {null|World} The world or null
+         */
         WorldObject.prototype.world = function () {
             return this._world;
         };
 
+        /**
+         * Get the parent of this world object.
+         *
+         * @returns {null|WorldObject} The parent object or null
+         */
         WorldObject.prototype.parent = function () {
             return this._parent;
-        }
+        };
 
         WorldObject.prototype.addChild = function (item) {
             return this._insertChild(item);

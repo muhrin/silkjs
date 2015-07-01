@@ -1,8 +1,8 @@
 /**
  * Created by martin on 08/06/15.
  */
-define(["./NodeController", "silk/Atom", "silk/util", "silk/WorldObject"],
-    function (NodeController, Atom, util, WorldObject) {
+define(["./NodeController", "silk/Atom", "silk/util", "silk/WorldObject", "lib/tinycolor"],
+    function (NodeController, Atom, util, WorldObject, tinycolor) {
         'use strict';
 
         var AtomController = function () {
@@ -16,20 +16,17 @@ define(["./NodeController", "silk/Atom", "silk/util", "silk/WorldObject"],
                         function (node) {
                             node.setXYZ({x: r, y: r, z: r});
                         });
-                }
-                else if (msg.name === "color") {
+                } else if (msg.name === "color") {
                     that.scene().getNode(object.worldId().concat("_material"),
                         function (node) {
-                            node.setBaseColor(object.attributes().color);
+                            node.setBaseColor(that._toNodeRgb(object.attributes().color));
                         });
-                }
-                else if (msg.name === "scenejs.shine") {
+                } else if (msg.name === "scenejs.shine") {
                     that.scene().getNode(object.worldId().concat("_material"),
                         function (node) {
                             node.setShine(object.attributes().scenejs.shine);
                         });
-                }
-                else if (msg.name === "scenejs.alpha") {
+                } else if (msg.name === "scenejs.alpha") {
                     that.scene().getNode(object.worldId().concat("_material"),
                         function (node) {
                             node.setAlpha(object.attributes().scenejs.alpha);
@@ -39,8 +36,8 @@ define(["./NodeController", "silk/Atom", "silk/util", "silk/WorldObject"],
 
             this.getModelAttributes = function () {
                 return {
-                    "scenejs.alpha": {value: 1.0},
-                    "scenejs.shine": {value: 70.0}
+                    "scenejs.alpha": {value: 1.0, type: WorldObject.ATTRIBUTE_TYPE.FLOAT},
+                    "scenejs.shine": {value: 70.0, type: WorldObject.ATTRIBUTE_TYPE.INTEGER}
                 };
             };
 
@@ -55,6 +52,11 @@ define(["./NodeController", "silk/Atom", "silk/util", "silk/WorldObject"],
             };
         };
         util.extend(NodeController, AtomController);
+
+        AtomController.prototype._toNodeRgb = function (color) {
+            var rgb = tinycolor(color).toRgb();
+            return {r: rgb.r / 255.0, g: rgb.g / 255.0, b: rgb.b / 255.0};
+        };
 
         AtomController.prototype.getLibraryNodes = function () {
             return [{
@@ -76,7 +78,7 @@ define(["./NodeController", "silk/Atom", "silk/util", "silk/WorldObject"],
                 nodes: [{
                     id: atom.worldId().concat("_material"),
                     type: "material",
-                    color: atom.attributes().color,
+                    color: this._toNodeRgb(atom.attributes().color),
                     nodes: [{
                         type: "geometry/sphere",
                         coreId: "atom_unit_sphere"

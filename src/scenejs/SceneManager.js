@@ -66,24 +66,6 @@ define([
                     });
             }
 
-            function worldInserted(object, msg) {
-                if (_mappers.hasOwnProperty(object.type())) {
-                    var attrs = _mappers[object.type()].getModelAttributes();
-                    if (attrs) {
-                        object.addAttributes(attrs);
-                    }
-                }
-            }
-
-            function worldRemoving(object, msg) {
-                if (_mappers.hasOwnProperty(object.type())) {
-                    var key;
-                    for (key in _mappers[object.type()].getModelAttributes()) {
-                        object.removeAttribute(key);
-                    }
-                }
-            }
-
             function addToLibrary(node) {
                 this.scene().getNode("library",
                     function (library) {
@@ -184,13 +166,28 @@ define([
                 }
                 _mappers[objType] = mapper;
                 mapper.attach(this);
+
+                // Add any library node to the scene as required
                 var libraryNodes = mapper.getLibraryNodes();
                 if (this.scene() && libraryNodes.length !== 0) {
                     this.addToLibrary(libraryNodes);
                 }
+
+                // Register any extra attributes for this object type
+                var attrs = _mappers[objType].getModelAttributes();
+                if (attrs) {
+                    world.attachExtraAttributes(objType, attrs);
+                }
             };
             this.removeMapper = function (worldObjectType) {
                 if (_mappers.hasOwnProperty(worldObjectType)) {
+
+                    // Deregister any extra attributes for this object type
+                    var attrs = _mappers[worldObjectType].getModelAttributes();
+                    if (attrs) {
+                        world.attachExtraAttributes(worldObjectType, attrs);
+                    }
+
                     _mappers[worldObjectType].detach();
                     delete _mappers[worldObjectType];
                 }
@@ -221,10 +218,6 @@ define([
                 WorldObject.EVENTS.POSITION_CHANGED, positionChanged);
             _world.addListener(event.ANY_OBJECT,
                 WorldObject.EVENTS.ROTATION_CHANGED, rotationChanged);
-            _world.addListener(event.ANY_OBJECT,
-                WorldObject.EVENTS.WORLD_INSERTED, worldInserted);
-            _world.addListener(event.ANY_OBJECT,
-                WorldObject.EVENTS.WORLD_REMOVING, worldRemoving);
 
             var _scene = SceneJS.createScene(createSceneNodes(canvasId));
         };
