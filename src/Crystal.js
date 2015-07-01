@@ -11,7 +11,7 @@ define(["./WorldObject", "./UnitCell", "./util"],
 
             unitCell = typeof unitCell !== 'undefined' ? unitCell : new UnitCell();
 
-            this.addChild(unitCell);
+            this.add(unitCell);
         };
         util.extend(WorldObject, Crystal);
         //Static constant properties

@@ -314,11 +314,11 @@ define(["./util", "./event", "lib/gl-matrix"],
             return this._parent;
         };
 
-        WorldObject.prototype.addChild = function (item) {
+        WorldObject.prototype.add = function (item) {
             return this._insertChild(item);
         };
 
-        WorldObject.prototype.removeChild = function (item) {
+        WorldObject.prototype.remove = function (item) {
             return this._removeChild(item);
         };
 
